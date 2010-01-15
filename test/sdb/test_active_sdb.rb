@@ -1,16 +1,16 @@
 require File.dirname(__FILE__) + '/test_helper.rb'
 
 class TestSdb < Test::Unit::TestCase
-  
+
   DOMAIN_NAME = 'right_sdb_awesome_test_domain'
-  
+
   class Client < RightAws::ActiveSdb::Base
     set_domain_name DOMAIN_NAME
   end
 
   def setup
     STDOUT.sync  = true
-    @clients = [ 
+    @clients = [
       { 'name' => 'Bush',     'country' => 'USA',    'gender' => 'male',   'expiration' => '2009', 'post' => 'president' },
       { 'name' => 'Putin',    'country' => 'Russia', 'gender' => 'male',   'expiration' => '2008', 'post' => 'president' },
       { 'name' => 'Medvedev', 'country' => 'Russia', 'gender' => 'male',   'expiration' => '2012', 'post' => 'president' },
@@ -21,7 +21,7 @@ class TestSdb < Test::Unit::TestCase
   end
 
   SDB_DELAY = 3
-  
+
   def wait(delay, msg='')
     print "     waiting #{delay} seconds: #{msg}"
     while delay>0 do
@@ -40,7 +40,7 @@ class TestSdb < Test::Unit::TestCase
     assert RightAws::ActiveSdb.delete_domain(DOMAIN_NAME)
     wait SDB_DELAY, 'test 00: after domain deletion'
   end
-  
+
   def test_01_create_domain
     # check that domain does not exist
     assert !RightAws::ActiveSdb.domains.include?(DOMAIN_NAME)
@@ -64,7 +64,7 @@ class TestSdb < Test::Unit::TestCase
     clients = Client.find(:all)
     assert_equal @clients.size, clients.size
   end
-  
+
   def test_03_create_and_save_new_item
     # get the db
     old_clients = Client.find(:all)
@@ -104,7 +104,7 @@ class TestSdb < Test::Unit::TestCase
     assert_equal ids.size, Client.find(ids).size
     ids << 'dummy_id'
     # must raise an error when getting unexistent record
-    assert_raise(RightAws::ActiveSdb::ActiveSdbError) do 
+    assert_raise(RightAws::ActiveSdb::ActiveSdbError) do
       Client.find(ids)
     end
     # find one record by unknown id
@@ -137,7 +137,7 @@ class TestSdb < Test::Unit::TestCase
     clients = Client.find_all_by_post('president', :order => 'name desc', :auto_load => true)
     assert_equal [['Putin'], ['Medvedev'], ['Bush']], clients.map{|c| c['name']}
   end
-  
+
   def test_07_find_by_helpers
     # find mr Bush
     assert Client.find_by_name('Bush')
@@ -203,7 +203,7 @@ class TestSdb < Test::Unit::TestCase
     assert_equal 2, Client.select_all_by_hobby_and_country('flowers', 'Russia').size
     assert_equal ['Putin'], Client.select_by_post_and_expiration('president','2008')['name']
   end
-  
+
   def test_11_save_and_put
     putin = Client.find_by_name('Putin')
     putin.reload
@@ -258,7 +258,7 @@ class TestSdb < Test::Unit::TestCase
     new_putin.reload
     assert ['english', 'german', 'russian'], new_putin['language'].sort
   end
-  
+
   def test_13_delete
     putin = Client.find_by_name('Putin')
     putin.reload
@@ -287,13 +287,13 @@ class TestSdb < Test::Unit::TestCase
     wait SDB_DELAY, 'test 11: after delete item'
     assert_nil Client.find_by_name('Putin')
   end
-  
+
   def test_14_delete_domain
     assert Client.delete_domain
     wait SDB_DELAY, 'test 12: after delete domain'
-    assert_raise(Rightscale::AwsError) do 
-      Client.find :all 
+    assert_raise(Rightscale::AwsError) do
+      Client.find :all
     end
   end
-    
+
 end
