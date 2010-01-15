@@ -906,6 +906,19 @@ module RightAws
         @new_record = false
       end
 
+      # support accessing attribute values via method call
+      def method_missing(method_sym, *args)
+        method_name = method_sym.to_s
+        setter = method_name[-1,1] == '='
+        method_name.chop! if setter
+
+        if @attributes.has_key? method_name
+          setter ? self[method_name] = args.first : self[method_name]
+        else
+          super
+        end
+      end
+
     private
 
       def raise_on_id_absence
