@@ -692,6 +692,10 @@ module RightAws
         self.attributes
       end
 
+      def columns
+        self.class.columns
+      end
+
       def connection
         self.class.connection
       end
@@ -966,6 +970,9 @@ module RightAws
 
       def prepare_for_update
         @attributes['id'] = self.class.generate_id if @attributes['id'].blank?
+        columns.all.each do |col_name|
+          self[col_name] ||= columns.default(col_name)
+        end
       end
 
       def uniq_values(attributes=nil) # :nodoc:
@@ -992,6 +999,10 @@ module RightAws
         @columns = {}
       end
 
+      def all
+        @columns.keys
+      end
+
       def column(col_name)
         @columns[col_name.to_s]
       end
@@ -1002,7 +1013,9 @@ module RightAws
       end
 
       def default(col_name)
-        column(col_name) && column(col_name)[:default]
+        return nil unless include?(col_name)
+        default = column(col_name)[:default]
+        default.respond_to?(:call) ? default.call : default
       end
 
       def method_missing(method_sym, *args)
